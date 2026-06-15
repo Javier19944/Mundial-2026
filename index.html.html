@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuadro del Mundial 2026</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #1a2236;
+    --border: #2a3a5c;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --gold: #f59e0b;
+    --silver: #94a3b8;
+    --bronze: #cd7f32;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --highlight: #1e3a5f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a2a4a 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+    justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
+  header .trophy { font-size: 2rem; }
+  header .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+  .controls {
+    padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .controls label { color: var(--muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); cursor: pointer; font-size: 0.88rem;
+    font-weight: 600; transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .section-title {
+    padding: 20px 24px 8px;
+    font-size: 1.1rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* GROUPS */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 12px 24px 24px;
+  }
+  .group-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .group-header {
+    background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);
+    padding: 10px 16px;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em;
+  }
+  .group-table { width: 100%; border-collapse: collapse; }
+  .group-table th {
+    padding: 8px 12px; background: rgba(255,255,255,0.04);
+    font-size: 0.72rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.05em; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .group-table td {
+    padding: 9px 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .group-table tr:last-child td { border-bottom: none; }
+  .pos-1 { border-left: 3px solid var(--gold); }
+  .pos-2 { border-left: 3px solid var(--silver); }
+  .pos-3 { border-left: 3px solid var(--bronze); }
+  .pos-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    font-size: 0.75rem; font-weight: 700;
+  }
+  .pos-badge.p1 { background: rgba(245,158,11,0.2); color: var(--gold); }
+  .pos-badge.p2 { background: rgba(148,163,184,0.2); color: var(--silver); }
+  .pos-badge.p3 { background: rgba(205,127,50,0.2); color: var(--bronze); }
+
+  .flag { font-size: 1.1rem; margin-right: 6px; }
+  .team-cell { display: flex; align-items: center; }
+
+  /* Agreement dots */
+  .agreement { display: flex; gap: 3px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .dot.match { background: var(--accent2); }
+
+  /* BRACKET */
+  .bracket-wrap { padding: 12px 24px 32px; overflow-x: auto; }
+  .bracket {
+    display: flex; gap: 0; min-width: 900px;
+  }
+  .round {
+    display: flex; flex-direction: column;
+    flex: 1; min-width: 180px;
+  }
+  .round-title {
+    text-align: center; font-size: 0.75rem; font-weight: 700;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 8px 0 12px;
+  }
+  .round-matches {
+    display: flex; flex-direction: column;
+    justify-content: space-around; flex: 1;
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .match-container {
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative; flex: 1;
+  }
+  .match {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .match-team {
+    padding: 9px 12px; font-size: 0.82rem; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .match-team:last-child { border-bottom: none; }
+  .match-team:hover { background: var(--highlight); }
+  .match-team .seed {
+    font-size: 0.68rem; color: var(--muted); font-weight: 400; margin-left: auto;
+    white-space: nowrap;
+  }
+  .match-label {
+    font-size: 0.65rem; color: var(--muted); text-align: center;
+    padding: 2px 0; background: rgba(0,0,0,0.3);
+  }
+
+  /* BEST THIRDS */
+  .thirds-section { padding: 0 24px 24px; }
+  .thirds-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px; margin-top: 8px;
+  }
+  .third-card {
+    background: var(--card); border: 1px solid var(--bronze);
+    border-radius: 10px; padding: 12px 16px;
+  }
+  .third-card .participant-name { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .third-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+  .third-item:last-child { border-bottom: none; }
+  .third-rank { font-size: 0.7rem; color: var(--bronze); font-weight: 700; width: 20px; }
+
+  /* REAL BRACKET */
+  .real-section { background: rgba(16, 185, 129, 0.04); border-top: 2px solid var(--accent2); }
+  .real-section .section-title { color: var(--accent2); }
+  .real-section .round-title { color: var(--accent2); }
+  .real-section .group-header { background: linear-gradient(135deg, #065f46 0%, #047857 100%); }
+
+  /* Participant display */
+  .participant-tag {
+    font-size: 0.7rem; padding: 2px 7px; border-radius: 4px;
+    font-weight: 600; display: inline-block;
+  }
+  .tag-Potencia { background: rgba(239,68,68,0.2); color: #f87171; }
+  .tag-Keno { background: rgba(168,85,247,0.2); color: #c084fc; }
+  .tag-Guille { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .tag-Marco { background: rgba(16,185,129,0.2); color: #34d399; }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+
+  /* Tooltip */
+  .participants-list { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+
+  /* SCOREBOARD */
+  .scoreboard {
+    display: flex; flex-direction: column; gap: 5px;
+    background: rgba(0,0,0,0.45); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px; min-width: 190px;
+    backdrop-filter: blur(6px);
+  }
+  .scoreboard-title {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); font-weight: 700; margin-bottom: 2px;
+  }
+  .score-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px; border-radius: 7px;
+    transition: background 0.15s;
+    font-size: 0.82rem;
+  }
+  .score-row.leader { background: rgba(245,158,11,0.15); }
+  .score-rank { font-size: 0.7rem; color: var(--muted); width: 16px; font-weight: 700; }
+  .score-rank.r1 { color: var(--gold); }
+  .score-rank.r2 { color: var(--silver); }
+  .score-rank.r3 { color: var(--bronze); }
+  .score-name { flex: 1; font-weight: 600; }
+  .score-pts {
+    font-weight: 800; font-size: 0.9rem; color: var(--accent2);
+    background: rgba(16,185,129,0.12); border-radius: 5px;
+    padding: 1px 7px;
+  }
+  .score-pts.top { color: var(--gold); background: rgba(245,158,11,0.15); }
+  .score-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; margin-left: 2px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 2px; background: var(--accent2); transition: width 0.4s; }
+  .score-bar.top { background: var(--gold); }
+
+  @media (max-width: 700px) {
+    .groups-grid { grid-template-columns: 1fr; padding: 12px; }
+    .bracket-wrap { padding: 12px; }
+    header h1 { font-size: 1.2rem; }
+    .scoreboard { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="trophy">🏆</span>
+    <div>
+      <h1>Mundial 2026 — Cuadro de Eliminatorias</h1>
+      <div class="subtitle">Basado en pronósticos de los participantes · 12 Grupos · 48 equipos</div>
+    </div>
+  </div>
+  <div class="scoreboard" id="scoreboard">
+    <div class="scoreboard-title">🏅 Ranking de pronósticos</div>
+    <div id="scoreRows"></div>
+  </div>
+</header>
+
+<div class="controls">
+  <label>Ver pronóstico de:</label>
+  <div class="btn-group">
+    <button class="btn active" onclick="setParticipant('all')">Todos</button>
+    <button class="btn" onclick="setParticipant('Potencia')">🔴 Potencia</button>
+    <button class="btn" onclick="setParticipant('Keno')">🟣 Keno</button>
+    <button class="btn" onclick="setParticipant('Guille')">🟡 Guille</button>
+    <button class="btn" onclick="setParticipant('Marco')">🟢 Marco</button>
+  </div>
+</div>
+
+<!-- GROUPS SECTION -->
+<div class="section-title">📊 Fase de Grupos — Pronósticos</div>
+<div class="groups-grid" id="groupsGrid"></div>
+
+<!-- BEST THIRDS -->
+<div class="section-title">🥉 Mejores Terceros Clasificados</div>
+<div class="thirds-section">
+  <div class="thirds-grid" id="thirdsGrid"></div>
+</div>
+
+<!-- BRACKET -->
+<div class="section-title">⚔️ Cuadro de Eliminatorias (pronóstico)</div>
+<div class="bracket-wrap">
+  <div class="bracket" id="bracket"></div>
+</div>
+
+<!-- REAL SECTION -->
+<div class="real-section">
+  <div class="section-title">✅ Cuadro Real — Resultados Oficiales</div>
+  <div class="groups-grid" id="realGroupsGrid"></div>
+  <div class="section-title" style="color:var(--accent2)">⚔️ Eliminatorias Reales</div>
+  <div class="bracket-wrap">
+    <div class="bracket" id="realBracket"></div>
+  </div>
+</div>
+
+<script>
+// ======== DATA ========
+const PARTICIPANTS = ['Potencia', 'Keno', 'Guille', 'Marco'];
+
+const groupData = {
+  'A': { 1: { Potencia:'Mexico',    Keno:'Mexico',    Guille:'Mexico',   Marco:'Mexico'    },
+         2: { Potencia:'Korea',     Keno:'Korea',     Guille:'Korea',    Marco:'Korea'     },
+         3: { Potencia:null,        Keno:null,        Guille:null,       Marco:null        } },
+  'B': { 1: { Potencia:'Canada',   Keno:'Canada',    Guille:'Canada',   Marco:'Canada'    },
+         2: { Potencia:'Suiza',     Keno:'Catar',     Guille:'Bosnia',   Marco:'Suiza'     },
+         3: { Potencia:null,        Keno:null,        Guille:'Suiza',    Marco:'Catar'     } },
+  'C': { 1: { Potencia:'Brasil',   Keno:'Marruecos', Guille:'Marruecos',Marco:'Brasil'    },
+         2: { Potencia:'Marruecos',Keno:'Brasil',    Guille:'Brasil',   Marco:'Marruecos' },
+         3: { Potencia:'Escocia',  Keno:'Escocia',   Guille:'Escocia',  Marco:null        } },
+  'D': { 1: { Potencia:'USA',      Keno:'USA',       Guille:'USA',      Marco:'USA'       },
+         2: { Potencia:'Turquia',  Keno:'Paraguay',  Guille:'Australia',Marco:'Australia' },
+         3: { Potencia:'Australia',Keno:'Australia', Guille:'Paraguay', Marco:'Paraguay'  } },
+  'E': { 1: { Potencia:'Alemania', Keno:'Alemania',  Guille:'Alemania', Marco:'Alemania'  },
+         2: { Potencia:'C. Marfil',Keno:'C. Marfil', Guille:'Ecuador',  Marco:'C. Marfil' },
+         3: { Potencia:'Ecuador',  Keno:'Ecuador',   Guille:'C. Marfil',Marco:'Ecuador'   } },
+  'F': { 1: { Potencia:'Japón',    Keno:'Japón',     Guille:'P. Bajos', Marco:'P. Bajos'  },
+         2: { Potencia:'P. Bajos', Keno:'P. Bajos',  Guille:'Japón',    Marco:'Japón'     },
+         3: { Potencia:'Suecia',   Keno:'Túnez',     Guille:null,       Marco:'Túnez'     } },
+  'G': { 1: { Potencia:'Egipto',   Keno:'Belgica',   Guille:'Belgica',  Marco:'Belgica'   },
+         2: { Potencia:'Belgica',  Keno:'Egipto',    Guille:'Iran',     Marco:'Egipto'    },
+         3: { Potencia:'Iran',     Keno:'N. Zelanda',Guille:'Egipto',   Marco:'Iran'      } },
+  'H': { 1: { Potencia:'Uruguay',  Keno:'España',    Guille:'Uruguay',  Marco:'España'    },
+         2: { Potencia:'España',   Keno:'Uruguay',   Guille:'España',   Marco:'Uruguay'   },
+         3: { Potencia:null,       Keno:'A. Saudita',Guille:null,       Marco:null        } },
+  'I': { 1: { Potencia:'Francia',  Keno:'Francia',   Guille:'Francia',  Marco:'Francia'   },
+         2: { Potencia:'Senegal',  Keno:'Senegal',   Guille:'Noruega',  Marco:'Noruega'   },
+         3: { Potencia:'Noruega',  Keno:'Noruega',   Guille:'Senegal',  Marco:'Senegal'   } },
+  'J': { 1: { Potencia:'Argentina',Keno:'Argentina', Guille:'Argentina',Marco:'Argentina' },
+         2: { Potencia:'Austria',  Keno:'Austria',   Guille:'Austria',  Marco:'Austria'   },
+         3: { Potencia:'Argelia',  Keno:null,        Guille:'Argelia',  Marco:'Argelia'   } },
+  'K': { 1: { Potencia:'Colombia', Keno:'Portugal',  Guille:'Portugal', Marco:'Portugal'  },
+         2: { Potencia:'Portugal', Keno:'Colombia',  Guille:'Colombia', Marco:'Colombia'  },
+         3: { Potencia:null,       Keno:null,        Guille:null,       Marco:null        } },
+  'L': { 1: { Potencia:'Inglaterra',Keno:'Inglaterra',Guille:'Croacia', Marco:'Inglaterra'},
+         2: { Potencia:'Ghana',    Keno:'Croacia',   Guille:'Ghana',    Marco:'Croacia'   },
+         3: { Potencia:'Croacia',  Keno:'Ghana',     Guille:'Inglaterra',Marco:'Ghana'    } }
+};
+
+// Real results (to be filled when available — same structure)
+const realData = {
+  'A': { 1:{real:'Mexico'},     2:{real:'Korea'},      3:{real:'-'} },
+  'B': { 1:{real:'Canada'},     2:{real:'Suiza'},      3:{real:'-'} },
+  'C': { 1:{real:'Brasil'},     2:{real:'Marruecos'},  3:{real:'Escocia'} },
+  'D': { 1:{real:'USA'},        2:{real:'Australia'},  3:{real:'Paraguay'} },
+  'E': { 1:{real:'Alemania'},   2:{real:'C. Marfil'},  3:{real:'Ecuador'} },
+  'F': { 1:{real:'P. Bajos'},   2:{real:'Japón'},      3:{real:'Túnez'} },
+  'G': { 1:{real:'Belgica'},    2:{real:'Egipto'},     3:{real:'Iran'} },
+  'H': { 1:{real:'España'},     2:{real:'Uruguay'},    3:{real:'-'} },
+  'I': { 1:{real:'Francia'},    2:{real:'Noruega'},    3:{real:'Senegal'} },
+  'J': { 1:{real:'Argentina'},  2:{real:'Austria'},    3:{real:'Argelia'} },
+  'K': { 1:{real:'Portugal'},   2:{real:'Colombia'},   3:{real:'-'} },
+  'L': { 1:{real:'Inglaterra'}, 2:{real:'Croacia'},    3:{real:'Ghana'} }
+};
+
+const FLAGS = {
+  'Mexico':'🇲🇽','Korea':'🇰🇷','Canada':'🇨🇦','Suiza':'🇨🇭','Catar':'🇶🇦','Bosnia':'🇧🇦',
+  'Brasil':'🇧🇷','Marruecos':'🇲🇦','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','USA':'🇺🇸','Turquia':'🇹🇷','Paraguay':'🇵🇾',
+  'Australia':'🇦🇺','Alemania':'🇩🇪','C. Marfil':'🇨🇮','Ecuador':'🇪🇨','Japón':'🇯🇵',
+  'P. Bajos':'🇳🇱','Suecia':'🇸🇪','Túnez':'🇹🇳','Egipto':'🇪🇬','Belgica':'🇧🇪','Iran':'🇮🇷',
+  'N. Zelanda':'🇳🇿','Uruguay':'🇺🇾','España':'🇪🇸','A. Saudita':'🇸🇦','Francia':'🇫🇷',
+  'Senegal':'🇸🇳','Noruega':'🇳🇴','Argentina':'🇦🇷','Austria':'🇦🇹','Argelia':'🇩🇿',
+  'Colombia':'🇨🇴','Portugal':'🇵🇹','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Ghana':'🇬🇭','Croacia':'🇭🇷',
+  '-':'❓'
+};
+
+function flag(t){ return FLAGS[t] || '🏳️'; }
+
+let currentParticipant = 'all';
+
+// ======== HELPERS ========
+function getTeam(groupPos, pos, participant) {
+  const d = groupData[groupPos][pos];
+  if (!d) return null;
+  if (participant === 'all') {
+    // Majority vote
+    const votes = {};
+    PARTICIPANTS.forEach(p => { const t = d[p]; if(t){ votes[t]=(votes[t]||0)+1; } });
+    let best=null, bestN=0;
+    Object.entries(votes).forEach(([t,n])=>{ if(n>bestN){bestN=n;best=t;} });
+    return best;
+  }
+  return d[participant];
+}
+
+function agreementDots(groupPos, pos) {
+  const d = groupData[groupPos][pos];
+  const vals = PARTICIPANTS.map(p=>d[p]).filter(Boolean);
+  if(!vals.length) return '';
+  const majority = getTeam(groupPos, pos, 'all');
+  return `<div class="agreement">${PARTICIPANTS.map(p=>{
+    const t = d[p];
+    const match = t && t === majority;
+    return `<div class="dot ${match?'match':''}" title="${p}: ${t||'—'}"></div>`;
+  }).join('')}</div>`;
+}
+
+// Best thirds: pick 4 best thirds out of 12 groups
+function getBestThirds(participant) {
+  const thirds = [];
+  Object.entries(groupData).forEach(([g, pos])=>{
+    const t = getTeam(g, 3, participant);
+    if(t) thirds.push({group:g, team:t});
+  });
+  // For simplicity, take first 4 that have a team (real tournament uses pts/gd — here we just pick 4)
+  // The tournament brackets use 4 best thirds out of 12 groups
+  // We pick the ones where most participants agree (or current participant's pick)
+  return thirds.slice(0,4);
+}
+
+// Build bracket for R32 (32 teams: 12 group1 + 12 group2 + 4 best thirds + 4 TBD slots)
+// FIFA 2026 bracket format: R32 → R16 → QF → SF → F
+function buildBracket(participant, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  // Collect teams
+  const g1 = {}, g2 = {}, g3 = {};
+  'ABCDEFGHIJKL'.split('').forEach(g=>{
+    g1[g] = participant==='real' ? realData[g][1].real : getTeam(g,1,participant);
+    g2[g] = participant==='real' ? realData[g][2].real : getTeam(g,2,participant);
+    g3[g] = participant==='real' ? realData[g][3].real : getTeam(g,3,participant);
+  });
+
+  // Best 4 thirds (simplified: pick A,B,C,D thirds)
+  const thirds = [];
+  'ABCDEFGHIJKL'.split('').forEach(g=>{
+    if(g3[g] && g3[g]!=='-') thirds.push({g, team:g3[g]});
+  });
+  const best4 = thirds.slice(0,4);
+  const b = (i) => best4[i] ? `${flag(best4[i].team)} ${best4[i].team}` : '❓ Por definir';
+  const bg = (i) => best4[i] ? best4[i].g : '?';
+
+  // R32 matchups (FIFA 2026 official bracket structure)
+  // 8 slots per bracket half
+  const r32 = [
+    // Match 1-8 (Top half)
+    { home: `${flag(g1['A'])} ${g1['A']}`, away: `${flag(g2['C'])} ${g2['C']}`, label:'G.A1 vs G.C2' },
+    { home: `${flag(g1['B'])} ${g1['B']}`, away: b(0), label:`G.B1 vs 3er Mejor` },
+    { home: `${flag(g1['C'])} ${g1['C']}`, away: `${flag(g2['A'])} ${g2['A']}`, label:'G.C1 vs G.A2' },
+    { home: `${flag(g1['D'])} ${g1['D']}`, away: `${flag(g2['B'])} ${g2['B']}`, label:'G.D1 vs G.B2' },
+    { home: `${flag(g1['E'])} ${g1['E']}`, away: `${flag(g2['D'])} ${g2['D']}`, label:'G.E1 vs G.D2' },
+    { home: `${flag(g1['F'])} ${g1['F']}`, away: b(1), label:`G.F1 vs 3er Mejor` },
+    { home: `${flag(g1['G'])} ${g1['G']}`, away: `${flag(g2['E'])} ${g2['E']}`, label:'G.G1 vs G.E2' },
+    { home: `${flag(g1['H'])} ${g1['H']}`, away: `${flag(g2['F'])} ${g2['F']}`, label:'G.H1 vs G.F2' },
+    // Match 9-16 (Bottom half)
+    { home: `${flag(g1['I'])} ${g1['I']}`, away: `${flag(g2['K'])} ${g2['K']}`, label:'G.I1 vs G.K2' },
+    { home: `${flag(g1['J'])} ${g1['J']}`, away: b(2), label:`G.J1 vs 3er Mejor` },
+    { home: `${flag(g1['K'])} ${g1['K']}`, away: `${flag(g2['I'])} ${g2['I']}`, label:'G.K1 vs G.I2' },
+    { home: `${flag(g1['L'])} ${g1['L']}`, away: `${flag(g2['J'])} ${g2['J']}`, label:'G.L1 vs G.J2' },
+    { home: `${flag(g1['A']||'?')} ${g1['A']||'?'}`, away: `${flag(g2['G'])} ${g2['G']}`, label:'G.A vs G.G2' },
+    { home: `${flag(g1['B']||'?')} ${g1['B']||'?'}`, away: b(3), label:`G.B1 vs 3er Mejor` },
+    { home: `${flag(g1['H']||'?')} ${g1['H']||'?'}`, away: `${flag(g2['L'])} ${g2['L']}`, label:'G.H1 vs G.L2' },
+    { home: `${flag(g1['G']||'?')} ${g1['G']||'?'}`, away: `${flag(g2['H'])} ${g2['H']}`, label:'G.G1 vs G.H2' },
+  ];
+
+  const rounds = [
+    { title: 'Ronda de 32', matches: r32.slice(0,16) },
+    { title: 'Octavos de Final', matches: Array(8).fill({home:'Ganador M1',away:'Ganador M2',label:''}) },
+    { title: 'Cuartos de Final', matches: Array(4).fill({home:'TBD',away:'TBD',label:''}) },
+    { title: 'Semifinales', matches: Array(2).fill({home:'TBD',away:'TBD',label:''}) },
+    { title: 'Final', matches: [{home:'TBD',away:'TBD',label:'🏆 Campeón'}] },
+  ];
+
+  rounds.forEach(round => {
+    const roundEl = document.createElement('div');
+    roundEl.className = 'round';
+    roundEl.innerHTML = `<div class="round-title">${round.title}</div>`;
+    const matchesEl = document.createElement('div');
+    matchesEl.className = 'round-matches';
+    round.matches.forEach(m => {
+      const mc = document.createElement('div');
+      mc.className = 'match-container';
+      mc.innerHTML = `
+        <div class="match">
+          ${m.label ? `<div class="match-label">${m.label}</div>` : ''}
+          <div class="match-team">${m.home}${round.title==='Final'?'<span class="seed">Final</span>':''}</div>
+          <div class="match-team">${m.away}</div>
+        </div>`;
+      matchesEl.appendChild(mc);
+    });
+    roundEl.appendChild(matchesEl);
+    container.appendChild(roundEl);
+  });
+}
+
+// ======== RENDER GROUPS ========
+function renderGroups(participant, containerId, isReal) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  Object.entries(isReal ? realData : groupData).forEach(([group, positions])=>{
+    const card = document.createElement('div');
+    card.className = 'group-card';
+
+    let rows = '';
+    [1,2,3].forEach(pos => {
+      let team, extraCols = '';
+      if(isReal){
+        team = positions[pos].real;
+        extraCols = '';
+      } else {
+        const d = positions[pos];
+        if(participant === 'all') {
+          team = getTeam(group, pos, 'all');
+          // Show who agrees
+          const agree = PARTICIPANTS.filter(p=>d[p]===team).map(p=>`<span class="participant-tag tag-${p}">${p.substring(0,1)}</span>`).join(' ');
+          extraCols = `<td>${agree}</td><td>${agreementDots(group, pos)}</td>`;
+        } else {
+          team = d[participant];
+          extraCols = `<td></td><td></td>`;
+        }
+      }
+      const posClass = ['','pos-1','pos-2','pos-3'][pos];
+      const badgeClass = ['','p1','p2','p3'][pos];
+      const posLabel = ['','1°','2°','3°'][pos];
+      rows += `<tr class="${posClass}">
+        <td><span class="pos-badge ${badgeClass}">${posLabel}</span></td>
+        <td><div class="team-cell"><span class="flag">${team&&team!=='-'?flag(team):'❓'}</span>${team||'—'}</div></td>
+        ${extraCols}
+      </tr>`;
+    });
+
+    const headers = isReal
+      ? `<th>Pos</th><th>Equipo</th>`
+      : (participant==='all'
+        ? `<th>Pos</th><th>Más votado</th><th>Quién</th><th>Acuerdo</th>`
+        : `<th>Pos</th><th>${participant}</th><th></th><th></th>`);
+
+    card.innerHTML = `
+      <div class="group-header">⚽ Grupo ${group}</div>
+      <table class="group-table">
+        <thead><tr>${headers}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    container.appendChild(card);
+  });
+}
+
+// ======== RENDER THIRDS ========
+function renderThirds(participant) {
+  const container = document.getElementById('thirdsGrid');
+  container.innerHTML = '';
+
+  const toRender = participant === 'all' ? PARTICIPANTS : [participant];
+  toRender.forEach(p => {
+    const thirds = [];
+    Object.entries(groupData).forEach(([g, pos])=>{
+      const t = pos[3][p];
+      if(t) thirds.push({group:g, team:t});
+    });
+
+    const card = document.createElement('div');
+    card.className = 'third-card';
+    let items = thirds.slice(0,4).map((t,i)=>`
+      <div class="third-item">
+        <span class="third-rank">${i+1}°</span>
+        <span>${flag(t.team)} ${t.team}</span>
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--muted)">G.${t.group}</span>
+      </div>`).join('');
+    if(!items) items = '<div style="color:var(--muted);font-size:0.82rem;padding:4px 0">Sin terceros definidos</div>';
+
+    card.innerHTML = `<div class="participant-name"><span class="participant-tag tag-${p}">${p}</span> — Mejores Terceros</div>${items}`;
+    container.appendChild(card);
+  });
+}
+
+// ======== SET PARTICIPANT ========
+function setParticipant(p) {
+  currentParticipant = p;
+  document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderGroups(p, 'groupsGrid', false);
+  renderThirds(p);
+  buildBracket(p, 'bracket');
+}
+
+
+// ======== SCORING ========
+// Points: 3 pts for correct 1st, 2 pts for correct 2nd, 1 pt for correct 3rd
+// Partial: 1 pt if team classified but in wrong position within same group
+function calcScores() {
+  const scores = {};
+  PARTICIPANTS.forEach(p => scores[p] = { pts: 0, exact: 0, partial: 0 });
+
+  Object.entries(groupData).forEach(([group, positions]) => {
+    const real = realData[group];
+    // Real classified teams
+    const realTeams = [real[1].real, real[2].real, real[3].real].filter(t => t && t !== '-');
+
+    [1, 2, 3].forEach(pos => {
+      const realTeam = real[pos].real;
+      if (!realTeam || realTeam === '-') return;
+
+      PARTICIPANTS.forEach(p => {
+        const pred = positions[pos][p];
+        if (!pred) return;
+        if (pred === realTeam) {
+          // Exact position match
+          const pts = pos === 1 ? 3 : pos === 2 ? 2 : 1;
+          scores[p].pts += pts;
+          scores[p].exact++;
+        } else if (realTeams.includes(pred)) {
+          // Team classified but wrong position
+          scores[p].pts += 1;
+          scores[p].partial++;
+        }
+      });
+    });
+  });
+
+  return scores;
+}
+
+function renderScoreboard() {
+  const scores = calcScores();
+  const sorted = Object.entries(scores).sort((a, b) => b[1].pts - a[1].pts);
+  const maxPts = sorted[0][1].pts || 1;
+  const container = document.getElementById('scoreRows');
+  const rankLabels = ['r1','r2','r3','r4'];
+  const rankEmoji = ['🥇','🥈','🥉','4°'];
+  container.innerHTML = sorted.map(([p, s], i) => {
+    const isTop = i === 0;
+    const barW = maxPts ? Math.round((s.pts / maxPts) * 100) : 0;
+    return `<div class="score-row${isTop?' leader':''}">
+      <span class="score-rank ${rankLabels[i]}">${rankEmoji[i]}</span>
+      <span class="score-name"><span class="participant-tag tag-${p}">${p}</span></span>
+      <div class="score-bar-wrap"><div class="score-bar${isTop?' top':''}" style="width:${barW}%"></div></div>
+      <span class="score-pts${isTop?' top':''}">${s.pts}pts</span>
+    </div>`;
+  }).join('');
+}
+
+// ======== INIT ========
+renderGroups('all', 'groupsGrid', false);
+renderThirds('all');
+buildBracket('all', 'bracket');
+renderGroups('all', 'realGroupsGrid', true);
+buildBracket('real', 'realBracket');
+renderScoreboard();
+</script>
+</body>
+</html>
